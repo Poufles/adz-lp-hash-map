@@ -5,42 +5,57 @@ export default function HashMap() {
     let loadFactor = 0;
     let capacity = 16;
 
+    // Initialise map's linked lists
     for (let index = 0; index < capacity; index++) {
         const linkedList = LinkedList();
 
         map.push(linkedList);
     };
 
-    const set = (key, value) => {
-        if (loadFactor >= 0.75) {
-            const newMap = [];
-            const entriesArr = entries();
+    /**
+     * Resizes the hash map and
+     * rehashes the elements.
+     */
+    function resize() {
+        const newMap = [];
+        const entriesArr = entries();
 
-            capacity *= 2;
+        capacity *= 2;
 
-            for (let index = 0; index < capacity; index++) {
-                const linkedList = LinkedList();
+        // Populate the new map with new linked lists
+        for (let index = 0; index < capacity; index++) {
+            const linkedList = LinkedList();
 
-                newMap.push(linkedList);
-            };
-
-            for (let index = 0; index < entriesArr.length; index++) {
-                const entry = entriesArr[index];
-                const hashKey = hash(entry[0]) % capacity;
-                const linkedList = newMap[hashKey];
-
-                linkedList.append({
-                    key: entry[0],
-                    value: entry[1]
-                });
-            };
-
-            map = newMap;
+            newMap.push(linkedList);
         };
+
+        // Populate the new map
+        for (let index = 0; index < entriesArr.length; index++) {
+            const entry = entriesArr[index]; // Retrieve entries
+            const hashKey = hash(entry[0]) % capacity; // Rehash entries
+            const linkedList = newMap[hashKey]; // Assign entries to new buckets
+
+            linkedList.append({
+                key: entry[0],
+                value: entry[1]
+            });
+        };
+
+        map = newMap; // Redefine map
+    };
+
+    /**
+     * Sets a new value in the hash map. Also updates a key's value if key exists.
+     * @param {string} key 
+     * @param {string} value 
+     */
+    const set = (key, value) => {
+        if (loadFactor >= 0.75) resize();
 
         const hashKey = hash(key) % capacity;
         const linkedList = map[hashKey];
 
+        // Check if key already exists
         if (linkedList.contains(key)) {
             const index = linkedList.find(key);
 
@@ -55,6 +70,11 @@ export default function HashMap() {
         loadFactor = length() / capacity;
     };
 
+    /**
+     * Retrieves key's value if it exists.
+     * @param {string} key 
+     * @returns {string | null}
+     */
     const get = (key) => {
         const hashKey = hash(key) % capacity;
         const linkedList = map[hashKey];
@@ -68,6 +88,11 @@ export default function HashMap() {
         return null;
     };
 
+    /**
+     * Checks if key exists.
+     * @param {string} key 
+     * @returns {boolean}
+     */
     const has = (key) => {
         const hashKey = hash(key) % capacity;
         const linkedList = map[hashKey];
@@ -75,6 +100,11 @@ export default function HashMap() {
         return linkedList.contains(key);
     };
 
+    /**
+     * Removes an element.
+     * @param {string} key 
+     * @returns {boolean}
+     */
     const remove = (key) => {
         const hashKey = hash(key) % capacity;
         const linkedList = map[hashKey];
@@ -90,6 +120,10 @@ export default function HashMap() {
         return false;
     };
 
+    /**
+     * Retrieve the size of the hash map.
+     * @returns {Number}
+     */
     const length = () => {
         let count = 0;
 
@@ -102,16 +136,31 @@ export default function HashMap() {
         return count;
     };
 
+    /**
+     * Clear the whole hash map.
+     */
     const clear = () => {
         for (let index = 0; index < capacity; index++) {
             map[index] = LinkedList();
         };
     };
 
+    /**
+     * Retrieves all keys of the hash map.
+     * @returns {Array} An array of keys.
+     */
     const keys = () => retrieve(entries, 0);
-    
+
+    /**
+     * Retrieves all values of the hash map.
+     * @returns {Array} An array of values.
+     */
     const values = () => retrieve(entries, 1);
 
+    /**
+     * Retrieves all entries of the hash map.
+     * @returns {Array} An array of entries.
+     */
     const entries = () => {
         const entry = [];
 
@@ -149,6 +198,12 @@ export default function HashMap() {
     };
 };
 
+/**
+ * Retrieves an array of a certain type from the entries. 
+ * @param {Function} entries 
+ * @param {*} pos 
+ * @returns {Array}
+ */
 function retrieve(entries, pos) {
     const keysArr = [];
     const entriesArr = entries();
